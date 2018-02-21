@@ -1,0 +1,19 @@
+{
+  "name": "prco-stream",
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "ioredis": "^3.2.2",
+    "koa": "^2.5.0",
+    "koa-trie-router": "^2.1.6",
+    "socket.io": "^2.0.4"
+  },
+  "main": "index.js",
+  "scripts": {
+    "watch": "npx nodemon ./index.js",
+    "start": "node index.js"
+  },
+  "devDependencies": {
+    "nodemon": "^1.15.1"
+  }
+}
