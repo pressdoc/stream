@@ -5,12 +5,13 @@
   "dependencies": {
     "ioredis": "^3.2.2",
     "koa": "^2.5.0",
+    "koa-bodyparser": "^4.2.0",
     "koa-trie-router": "^2.1.6",
     "socket.io": "^2.0.4"
   },
   "main": "index.js",
   "scripts": {
-    "watch": "npx nodemon ./index.js",
+    "watch": "NODE_ENV=development npx nodemon ./index.js",
     "start": "node index.js"
   },
   "devDependencies": {

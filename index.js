@@ -1,5 +1,6 @@
 const Koa = require('koa')
 const Router = require('koa-trie-router')
+const bodyParser = require('koa-bodyparser');
 const http = require('http')
 const socket = require('socket.io')
 const Redis = require('ioredis');
@@ -7,7 +8,8 @@ const Redis = require('ioredis');
 const config = {
   host: process.env.HOST || '127.0.0.1',
   port: process.env.PORT || 5000,
-  redis: process.env.REDIS || 'redis://127.0.0.1:6379'
+  redis: process.env.REDIS || 'redis://127.0.0.1:6379',
+  secret: process.env.SECRET || "foo"
 }
 
 ///////////////////////////////////////////////////////
@@ -47,29 +49,56 @@ sub.on('pmessage', (pattern, channel, message) => {
 
 const get = async(ctx, next) => {
   await next()
-
-  pub.publish('test', JSON.stringify({ "name": "YOLO" }))
-
-  ctx.type = 'json'
   ctx.body = {
-    message: 'Hello home sample!'
+    ok: true,
+    name: "pr.co Websocket Server",
+    status: 200,
+    env: process.env.NODE_ENV
   }
 }
 
 const post = async(ctx, next) => {
   await next()
 
-  pub.publish('test', JSON.stringify({ "name": "YOLO" }))
+  const body = ctx.request.body
+  if (Object.keys(body).length === 0) {
+    return ctx.throw(422, "Message could not be added. Empty request body");
+  }
+
+  const { channel, params={} } = body
+  if (!channel || channel.length == 0) {
+    return ctx.throw(422, "Message could not be added. No `channel` in request body");
+  }
+
+  pub.publish(channel, JSON.stringify(params))
 
   ctx.type = 'json'
   ctx.body = {
-    message: 'Hello home sample!'
+    message: "Message added"
   }
 }
 
 router
   .get('/', get)
   .post('/', post)
+
+app.use(bodyParser());
+
+app.use(async (ctx, next) => {
+  await next();
+  ctx.type = 'json';
+});
+
+app.use(async (ctx, next) => {
+  try {
+    await next();
+  } catch (err) {
+    ctx.status = err.statusCode || err.status || 500;
+    ctx.body = {
+      message: err.message
+    };
+  }
+})
 
 app.use(router.middleware())
 
