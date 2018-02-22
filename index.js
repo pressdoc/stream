@@ -43,7 +43,8 @@ io.sockets.on('connection', (socket) => {
 
 sub.psubscribe(`${prefix}:*`);
 sub.on('pmessage', (pattern, channel, message) => {
-  io.emit(channel, JSON.parse(message));
+  const c = channel.replace(`${prefix}:`, "")
+  io.emit(c, JSON.parse(message));
 });
 
 ///////////////////////////////////////////////////////
