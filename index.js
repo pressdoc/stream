@@ -6,11 +6,13 @@ const socket = require('socket.io')
 const Redis = require('ioredis');
 
 const config = {
+  env: process.env.NODE_ENV || "production",
   host: process.env.HOST || '127.0.0.1',
   port: process.env.PORT || 5000,
   redis: process.env.REDIS || 'redis://127.0.0.1:6379',
   secret: process.env.SECRET || "foo"
 }
+const prefix = `stream:${config.env}`
 
 ///////////////////////////////////////////////////////
 // Initialize
@@ -20,8 +22,16 @@ const app = new Koa()
 const router = new Router()
 const server = http.createServer(app.callback())
 const io = new socket(server)
+
 const sub = new Redis(config.redis);
-const pub = new Redis(config.redis);
+const pub = sub.duplicate();
+
+pub.monitor(function (err, monitor) {
+  // Entering monitoring mode.
+  monitor.on('monitor', function (time, args, source, database) {
+    console.log(time + ": " + args, source);
+  });
+});
 
 ///////////////////////////////////////////////////////
 // Socket
@@ -38,8 +48,9 @@ io.sockets.on('connection', (socket) => {
 // Redis
 ///////////////////////////////////////////////////////
 
-sub.psubscribe('*');
+sub.psubscribe(`${prefix}:*`);
 sub.on('pmessage', (pattern, channel, message) => {
+  console.log(channel)
   io.emit(channel, JSON.parse(message));
 });
 
@@ -53,7 +64,7 @@ const get = async(ctx, next) => {
     ok: true,
     name: "pr.co Websocket Server",
     status: 200,
-    env: process.env.NODE_ENV
+    env: config.env
   }
 }
 
@@ -70,7 +81,7 @@ const post = async(ctx, next) => {
     return ctx.throw(422, "Message could not be added. No `channel` in request body");
   }
 
-  pub.publish(channel, JSON.stringify(params))
+  pub.publish(`${prefix}:${channel}`, JSON.stringify(params))
 
   ctx.type = 'json'
   ctx.body = {
