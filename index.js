@@ -26,13 +26,6 @@ const io = new socket(server)
 const sub = new Redis(config.redis);
 const pub = sub.duplicate();
 
-pub.monitor(function (err, monitor) {
-  // Entering monitoring mode.
-  monitor.on('monitor', function (time, args, source, database) {
-    console.log(time + ": " + args, source);
-  });
-});
-
 ///////////////////////////////////////////////////////
 // Socket
 ///////////////////////////////////////////////////////
@@ -50,7 +43,6 @@ io.sockets.on('connection', (socket) => {
 
 sub.psubscribe(`${prefix}:*`);
 sub.on('pmessage', (pattern, channel, message) => {
-  console.log(channel)
   io.emit(channel, JSON.parse(message));
 });
 
@@ -60,11 +52,16 @@ sub.on('pmessage', (pattern, channel, message) => {
 
 const get = async(ctx, next) => {
   await next()
+
   ctx.body = {
     ok: true,
     name: "pr.co Websocket Server",
     status: 200,
-    env: config.env
+    env: config.env,
+    redis: {
+      pub: pub.status,
+      sub: sub.status
+    }
   }
 }
 
