@@ -1,6 +1,7 @@
 const Koa = require('koa')
 const Router = require('koa-trie-router')
 const bodyParser = require('koa-bodyparser');
+const auth = require('koa-basic-auth');
 const http = require('http')
 const socket = require('socket.io')
 const Redis = require('ioredis');
@@ -10,7 +11,8 @@ const config = {
   host: process.env.HOST || '127.0.0.1',
   port: process.env.PORT || 5000,
   redis: process.env.REDIS || 'redis://127.0.0.1:6379',
-  secret: process.env.SECRET || "foo"
+  client_key: process.env.CLIENT_KEY || "key",
+  client_secret: process.env.CLIENT_SECRET || "secret"
 }
 const prefix = `stream:${config.env}`
 
@@ -109,6 +111,7 @@ app.use(async (ctx, next) => {
   }
 })
 
+// app.use(auth({ name: config.client_key, pass: config.client_secret }));
 app.use(router.middleware())
 
 ///////////////////////////////////////////////////////
