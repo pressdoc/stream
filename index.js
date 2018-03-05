@@ -111,7 +111,7 @@ app.use(async (ctx, next) => {
   }
 })
 
-// app.use(auth({ name: config.client_key, pass: config.client_secret }));
+app.use(auth({ name: config.client_key, pass: config.client_secret }));
 app.use(router.middleware())
 
 ///////////////////////////////////////////////////////
