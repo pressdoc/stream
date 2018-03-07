@@ -53,6 +53,8 @@ sub.on('pmessage', (pattern, channel, message) => {
 // Routes
 ///////////////////////////////////////////////////////
 
+const basicAuth = auth({ name: config.client_key, pass: config.client_secret })
+
 const get = async(ctx, next) => {
   await next()
 
@@ -91,7 +93,7 @@ const post = async(ctx, next) => {
 
 router
   .get('/', get)
-  .post('/', post)
+  .post('/', [ basicAuth, post ])
 
 app.use(bodyParser());
 
@@ -111,7 +113,6 @@ app.use(async (ctx, next) => {
   }
 })
 
-app.use(auth({ name: config.client_key, pass: config.client_secret }));
 app.use(router.middleware())
 
 ///////////////////////////////////////////////////////
