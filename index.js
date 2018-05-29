@@ -4,13 +4,15 @@ const bodyParser = require('koa-bodyparser');
 const http = require('http')
 const socket = require('socket.io')
 const Redis = require('ioredis');
+const sjcl = require('sjcl');
 
 const config = {
   env: process.env.NODE_ENV || "production",
   host: process.env.HOST || '127.0.0.1',
   port: process.env.PORT || 5000,
   redis: process.env.REDIS || 'redis://127.0.0.1:6379',
-  secret: process.env.SECRET || "foo"
+  secret: process.env.SECRET || "foo",
+  salt: process.env.SALT || "p1fxqb8xujm6JFo7"
 }
 const prefix = `stream:${config.env}`
 
@@ -25,6 +27,30 @@ const io = new socket(server)
 
 const sub = new Redis(config.redis);
 const pub = sub.duplicate();
+
+///////////////////////////////////////////////////////
+// Authentication setup
+///////////////////////////////////////////////////////
+
+function authenticate(socket, data, callback) {
+  const username = data.username;
+  const key = data.key;
+  const encryptKey = username + "-" + config.salt;
+
+  const bitArray = sjcl.hash.sha256.hash(encryptKey);
+  const result   = sjcl.codec.hex.fromBits(bitArray);
+
+  if (result !== key) {
+    return callback(new Error("User not authenticated"));
+  } else {
+    return callback(null, true);
+  }
+}
+
+require('socketio-auth')(io, {
+  authenticate: authenticate,
+  timeout: 1000
+});
 
 ///////////////////////////////////////////////////////
 // Socket
