@@ -41,28 +41,6 @@ socketAuth(io, {
 const sub = new Redis(config.redis);
 const pub = sub.duplicate();
 
-///////////////////////////////////////////////////////
-// Authentication setup
-///////////////////////////////////////////////////////
-
-function authenticate(socket, data, callback) {
-  const { client_key, client_secret } = data;
-
-  const username = data.username;
-  const key = data.key;
-  const encryptKey = username + "-" + config.salt;
-
-  if (result !== key) {
-    return callback(new Error("User not authenticated"));
-  } else {
-    return callback(null, true);
-  }
-}
-
-require('socketio-auth')(io, {
-  authenticate: authenticate,
-  timeout: 1000
-});
 
 ///////////////////////////////////////////////////////
 // Socket
