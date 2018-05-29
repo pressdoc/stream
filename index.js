@@ -4,6 +4,7 @@ const bodyParser = require('koa-bodyparser');
 const auth = require('koa-basic-auth');
 const http = require('http')
 const socket = require('socket.io')
+const socketAuth = require('socketio-auth')
 const Redis = require('ioredis');
 
 const config = {
@@ -25,6 +26,17 @@ const app = new Koa()
 const router = new Router()
 const server = http.createServer(app.callback())
 const io = new socket(server)
+
+socketAuth(io, {
+  authenticate: (socket, data, callback) => {
+    const { client_key, client_secret } = data;
+    return callback(null,  (
+      client_key == config.client_key &&
+      client_secret == config.client_secret
+    ));
+  }
+});
+
 
 const sub = new Redis(config.redis);
 const pub = sub.duplicate();
