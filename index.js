@@ -12,7 +12,6 @@ const config = {
   host: process.env.HOST || '127.0.0.1',
   port: process.env.PORT || 5000,
   redis: process.env.REDIS || 'redis://127.0.0.1:6379',
-  salt: process.env.SALT || "p1fxqb8xujm6JFo7", // ??
   client_key: process.env.CLIENT_KEY || "key",
   client_secret: process.env.CLIENT_SECRET || "secret"
 }
